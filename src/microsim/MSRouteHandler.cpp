@@ -514,10 +514,9 @@ MSRouteHandler::closeRoute(const bool mayBeDisconnected) {
             delete myActiveRouteColor;
             myActiveRouteColor = nullptr;
             if (myActiveRouteRefID != "" && myCurrentRouteDistribution != nullptr) {
-                const MSRoute* route = MSRoute::dictionary(myActiveRouteRefID, &myParsingRNG);
+                ConstMSRoutePtr route = MSRoute::dictionary(myActiveRouteRefID, &myParsingRNG);
                 if (route != nullptr) {
                     if (myCurrentRouteDistribution->add(route, myActiveRouteProbability)) {
-                        route->addReference();
                     }
                 }
                 myActiveRouteID = "";
@@ -555,14 +554,13 @@ MSRouteHandler::closeRoute(const bool mayBeDisconnected) {
                 }
             }
         }
-        MSRoute* route = new MSRoute(myActiveRouteID, myActiveRoute,
+        std::shared_ptr<MSRoute> route = std::make_shared<MSRoute>(myActiveRouteID, myActiveRoute,
                                      myVehicleParameter == nullptr || myVehicleParameter->repetitionNumber >= 1,
                                      myActiveRouteColor, myActiveRouteStops);
         route->setPeriod(myActiveRoutePeriod);
         route->setCosts(myCurrentCosts);
         myActiveRoute.clear();
         if (!MSRoute::dictionary(myActiveRouteID, route)) {
-            delete route;
             if (!MSGlobals::gStateLoaded) {
                 if (myVehicleParameter != nullptr) {
                     if (MSNet::getInstance()->getVehicleControl().getVehicle(myVehicleParameter->id) == nullptr) {
@@ -577,7 +575,6 @@ MSRouteHandler::closeRoute(const bool mayBeDisconnected) {
         } else {
             if (myCurrentRouteDistribution != nullptr) {
                 if (myCurrentRouteDistribution->add(route, myActiveRouteProbability)) {
-                    route->addReference();
                 }
             }
         }
@@ -605,7 +602,7 @@ MSRouteHandler::openRouteDistribution(const SUMOSAXAttributes& attrs) {
             return;
         }
     }
-    myCurrentRouteDistribution = new RandomDistributor<const MSRoute*>();
+    myCurrentRouteDistribution = new RandomDistributor<ConstMSRoutePtr>();
     std::vector<double> probs;
     if (attrs.hasAttribute(SUMO_ATTR_PROBS)) {
         bool ok = true;
@@ -620,13 +617,12 @@ MSRouteHandler::openRouteDistribution(const SUMOSAXAttributes& attrs) {
         int probIndex = 0;
         while (st.hasNext()) {
             std::string routeID = st.next();
-            const MSRoute* route = MSRoute::dictionary(routeID, &myParsingRNG);
+            ConstMSRoutePtr route = MSRoute::dictionary(routeID, &myParsingRNG);
             if (route == nullptr) {
                 throw ProcessError("Unknown route '" + routeID + "' in distribution '" + myCurrentRouteDistributionID + "'.");
             }
             const double prob = ((int)probs.size() > probIndex ? probs[probIndex] : 1.0);
             if (myCurrentRouteDistribution->add(route, prob, false)) {
-                route->addReference();
             }
             probIndex++;
         }
@@ -663,15 +659,11 @@ MSRouteHandler::closeRouteDistribution() {
 void
 MSRouteHandler::closeVehicle() {
     // get nested route
-    const MSRoute* route = MSRoute::dictionary("!" + myVehicleParameter->id, &myParsingRNG);
+    ConstMSRoutePtr route = MSRoute::dictionary("!" + myVehicleParameter->id, &myParsingRNG);
     MSVehicleControl& vehControl = MSNet::getInstance()->getVehicleControl();
     if (myVehicleParameter->departProcedure == DEPART_GIVEN) {
         // let's check whether this vehicle had to depart before the simulation starts
         if (!(myAddVehiclesDirectly || checkLastDepart()) || (myVehicleParameter->depart < string2time(OptionsCont::getOptions().getString("begin")) && !myAmLoadingState)) {
-            if (route != nullptr) {
-                route->addReference();
-                route->release();
-            }
             return;
         }
     }
@@ -1301,7 +1293,7 @@ MSRouteHandler::addWalk(const SUMOSAXAttributes& attrs) {
         MSStoppingPlace* bs = nullptr;
         if (attrs.hasAttribute(SUMO_ATTR_ROUTE)) {
             const std::string routeID = attrs.get<std::string>(SUMO_ATTR_ROUTE, myVehicleParameter->id.c_str(), ok);
-            const MSRoute* route = MSRoute::dictionary(routeID, &myParsingRNG);
+            ConstMSRoutePtr route = MSRoute::dictionary(routeID, &myParsingRNG);
             if (route == nullptr) {
                 throw ProcessError("The route '" + routeID + "' for walk of person '" + myVehicleParameter->id + "' is not known.");
             }

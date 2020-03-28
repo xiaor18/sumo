@@ -22,6 +22,7 @@
 #include <iostream>
 #include <string>
 #include <set>
+#include <memory>
 
 
 /// @brief Function-object for stable sorting of objects acting like Named without being derived (SUMOVehicle)
@@ -61,10 +62,16 @@ public:
     /// @brief Destructor
     virtual ~Named() { }
 
-    /// @brief get an identifier for Named-like object which may be Null
+    /// @brief get an identifier for Named-like object which may be nullptr
     template<class T>
     static std::string getIDSecure(const T* obj, const std::string& fallBack = "NULL") {
-        return obj == 0 ? fallBack : obj->getID();
+        return obj == nullptr ? fallBack : obj->getID();
+    }
+
+    /// @brief get an identifier for Named-like object which may be nullptr
+    template<class T>
+    static std::string getIDSecure(std::shared_ptr<const T> obj) {
+        return obj->getID();
     }
 
     /** @brief Returns the id

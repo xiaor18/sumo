@@ -51,7 +51,6 @@ MSRoute::MSRoute(const std::string& id,
                  const bool isPermanent, const RGBColor* const c,
                  const std::vector<SUMOVehicleParameter::Stop>& stops) :
     Named(id), myEdges(edges), myAmPermanent(isPermanent),
-    myReferenceCounter(isPermanent ? 1 : 0),
     myColor(c),
     myPeriod(0),
     myCosts(-1),
@@ -60,6 +59,7 @@ MSRoute::MSRoute(const std::string& id,
 
 
 MSRoute::~MSRoute() {
+    myDict.erase(getID());
     delete myColor;
 }
 
@@ -89,31 +89,13 @@ MSRoute::getLastEdge() const {
 }
 
 
-void
-MSRoute::addReference() const {
-    myReferenceCounter++;
-}
-
-
-void
-MSRoute::release() const {
-    myReferenceCounter--;
-    if (myReferenceCounter == 0) {
-#ifdef HAVE_FOX
-        FXMutexLock f(myDictMutex);
-#endif
-        myDict.erase(myID);
-        delete this;
-    }
-}
-
-
 bool
-MSRoute::dictionary(const std::string& id, const MSRoute* route) {
+MSRoute::dictionary(const std::string& id, ConstMSRoutePtr route) {
 #ifdef HAVE_FOX
     FXMutexLock f(myDictMutex);
 #endif
     if (myDict.find(id) == myDict.end() && myDistDict.find(id) == myDistDict.end()) {
+        route->mySelfRef = route;
         myDict[id] = route;
         return true;
     }
@@ -122,7 +104,7 @@ MSRoute::dictionary(const std::string& id, const MSRoute* route) {
 
 
 bool
-MSRoute::dictionary(const std::string& id, RandomDistributor<const MSRoute*>* const routeDist, const bool permanent) {
+MSRoute::dictionary(const std::string& id, RandomDistributor<ConstMSRoutePtr>* const routeDist, const bool permanent) {
 #ifdef HAVE_FOX
     FXMutexLock f(myDictMutex);
 #endif
@@ -134,7 +116,7 @@ MSRoute::dictionary(const std::string& id, RandomDistributor<const MSRoute*>* co
 }
 
 
-const MSRoute*
+ConstMSRoutePtr
 MSRoute::dictionary(const std::string& id, std::mt19937* rng) {
 #ifdef HAVE_FOX
     FXMutexLock f(myDictMutex);
@@ -147,7 +129,12 @@ MSRoute::dictionary(const std::string& id, std::mt19937* rng) {
         }
         return it2->second.first->get(rng);
     }
-    return it->second;
+    ConstMSRoutePtr shared = it->second.lock();
+    ConstMSRoutePtr result = shared->mySelfRef;
+    if (!shared->myAmPermanent) {
+        shared->mySelfRef = nullptr;
+    }
+    return result;
 }
 
 
@@ -160,7 +147,7 @@ MSRoute::hasRoute(const std::string& id) {
 }
 
 
-RandomDistributor<const MSRoute*>*
+RandomDistributor<ConstMSRoutePtr>*
 MSRoute::distDictionary(const std::string& id) {
 #ifdef HAVE_FOX
     FXMutexLock f(myDictMutex);
@@ -182,9 +169,6 @@ MSRoute::clear() {
         delete i->second.first;
     }
     myDistDict.clear();
-    for (RouteDict::iterator i = myDict.begin(); i != myDict.end(); ++i) {
-        delete i->second;
-    }
     myDict.clear();
 }
 
@@ -196,10 +180,6 @@ MSRoute::checkDist(const std::string& id) {
 #endif
     RouteDistDict::iterator it = myDistDict.find(id);
     if (it != myDistDict.end() && !it->second.second) {
-        const std::vector<const MSRoute*>& routes = it->second.first->getVals();
-        for (std::vector<const MSRoute*>::const_iterator i = routes.begin(); i != routes.end(); ++i) {
-            (*i)->release();
-        }
         delete it->second.first;
         myDistDict.erase(it);
     }
@@ -266,9 +246,10 @@ MSRoute::dict_saveState(OutputDevice& out) {
     FXMutexLock f(myDictMutex);
 #endif
     for (RouteDict::iterator it = myDict.begin(); it != myDict.end(); ++it) {
-        out.openTag(SUMO_TAG_ROUTE).writeAttr(SUMO_ATTR_ID, (*it).second->getID());
-        out.writeAttr(SUMO_ATTR_STATE, (*it).second->myAmPermanent);
-        out.writeAttr(SUMO_ATTR_EDGES, (*it).second->myEdges).closeTag();
+        ConstMSRoutePtr route = (*it).second.lock();
+        out.openTag(SUMO_TAG_ROUTE).writeAttr(SUMO_ATTR_ID, route->getID());
+        out.writeAttr(SUMO_ATTR_STATE, route->myAmPermanent);
+        out.writeAttr(SUMO_ATTR_EDGES, route->myEdges).closeTag();
     }
     for (const auto& item : myDistDict) {
         if (item.second.first->getVals().size() > 0) {

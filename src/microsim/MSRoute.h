@@ -28,6 +28,7 @@
 #include <map>
 #include <vector>
 #include <algorithm>
+#include <memory>
 #include <utils/common/Named.h>
 #include <utils/distribution/RandomDistributor.h>
 #include <utils/common/RGBColor.h>
@@ -52,6 +53,7 @@ class OutputDevice;
 typedef std::vector<const MSEdge*> ConstMSEdgeVector;
 typedef std::vector<MSEdge*> MSEdgeVector;
 typedef ConstMSEdgeVector::const_iterator MSRouteIterator;
+typedef std::shared_ptr<const MSRoute> ConstMSRoutePtr;
 
 
 // ===========================================================================
@@ -81,12 +83,6 @@ public:
 
     /// returns the destination edge
     const MSEdge* getLastEdge() const;
-
-    /** @brief increments the reference counter for the route */
-    void addReference() const;
-
-    /** @brief deletes the route if there are no further references to it*/
-    void release() const;
 
     /** @brief Output the edge ids up to but not including the id of the given edge
      * @param[in] os The stream to write the routes into (binary)
@@ -203,7 +199,7 @@ public:
      * @param[in] route pointer to the route object
      * @return          whether adding was successful
      */
-    static bool dictionary(const std::string& id, const MSRoute* route);
+    static bool dictionary(const std::string& id, ConstMSRoutePtr route);
 
     /** @brief Adds a route distribution to the dictionary.
      *
@@ -215,7 +211,7 @@ public:
      * @param[in] permanent  whether the new route distribution survives more than one vehicle / flow
      * @return               whether adding was successful
      */
-    static bool dictionary(const std::string& id, RandomDistributor<const MSRoute*>* const routeDist, const bool permanent = true);
+    static bool dictionary(const std::string& id, RandomDistributor<ConstMSRoutePtr>* const routeDist, const bool permanent = true);
 
     /** @brief Returns the named route or a sample from the named distribution.
      *
@@ -225,7 +221,7 @@ public:
      * @param[in] id    the id of the route or the distribution
      * @return          the route (sample)
      */
-    static const MSRoute* dictionary(const std::string& id, std::mt19937* rng = 0);
+    static ConstMSRoutePtr dictionary(const std::string& id, std::mt19937* rng = 0);
 
     /// @brief returns whether a route with the given id exists
     static bool hasRoute(const std::string& id);
@@ -237,7 +233,7 @@ public:
      * @param[in] id    the id of the route distribution
      * @return          the route distribution
      */
-    static RandomDistributor<const MSRoute*>* distDictionary(const std::string& id);
+    static RandomDistributor<ConstMSRoutePtr>* distDictionary(const std::string& id);
 
     /// Clears the dictionary (delete all known routes, too)
     static void clear();
@@ -254,8 +250,8 @@ private:
     /// whether the route may be deleted after the last vehicle abandoned it
     const bool myAmPermanent;
 
-    /// Information by how many vehicles the route is used
-    mutable int myReferenceCounter;
+    /// self reference to avoid early destruction
+    mutable ConstMSRoutePtr mySelfRef;
 
     /// The color
     const RGBColor* const myColor;
@@ -274,13 +270,13 @@ private:
 
 private:
     /// Definition of the dictionary container
-    typedef std::map<std::string, const MSRoute*> RouteDict;
+    typedef std::map<std::string, std::weak_ptr<const MSRoute> > RouteDict;
 
     /// The dictionary container
     static RouteDict myDict;
 
     /// Definition of the dictionary container
-    typedef std::map<std::string, std::pair<RandomDistributor<const MSRoute*>*, bool> > RouteDistDict;
+    typedef std::map<std::string, std::pair<RandomDistributor<ConstMSRoutePtr>*, bool> > RouteDistDict;
 
     /// The dictionary container
     static RouteDistDict myDistDict;

@@ -21,6 +21,7 @@
 #include <config.h>
 
 #include <vector>
+#include <memory>
 #include <microsim/MSVehicleControl.h>
 
 
@@ -63,7 +64,7 @@ public:
      * @see MSVehicleControl::buildVehicle
      */
     virtual SUMOVehicle* buildVehicle(SUMOVehicleParameter* defs,
-                                      const MSRoute* route, MSVehicleType* type,
+                                      std::shared_ptr<const MSRoute> route, MSVehicleType* type,
                                       const bool ignoreStopErrors, const bool fromRouteFile = true);
     /// @}
 

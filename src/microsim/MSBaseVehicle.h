@@ -67,7 +67,7 @@ public:
      * @param[in] speedFactor The factor for driven lane's speed limits
      * @exception ProcessError If a value is wrong
      */
-    MSBaseVehicle(SUMOVehicleParameter* pars, const MSRoute* route,
+    MSBaseVehicle(SUMOVehicleParameter* pars, ConstMSRoutePtr route,
                   MSVehicleType* type, const double speedFactor);
 
 
@@ -115,6 +115,13 @@ public:
      */
     inline const MSRoute& getRoute() const {
         return *myRoute;
+    }
+
+    /** @brief Returns the current route
+     * @return The route the vehicle uses
+     */
+    inline ConstMSRoutePtr getSharedRoute() const {
+        return myRoute;
     }
 
 
@@ -384,7 +391,7 @@ public:
      * @param[in] route The route to check (or 0 if the current route shall be checked)
      * @return Whether the vehicle's current route is valid
      */
-    bool hasValidRoute(std::string& msg, const MSRoute* route = 0) const;
+    bool hasValidRoute(std::string& msg, ConstMSRoutePtr route = 0) const;
 
     /** @brief Adds a MoveReminder dynamically
      *
@@ -667,7 +674,7 @@ protected:
     const SUMOVehicleParameter* myParameter;
 
     /// @brief This vehicle's route.
-    const MSRoute* myRoute;
+    ConstMSRoutePtr myRoute;
 
     /// @brief This vehicle's type.
     MSVehicleType* myType;

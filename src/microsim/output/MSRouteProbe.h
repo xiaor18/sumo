@@ -25,6 +25,7 @@
 #include <string>
 #include <microsim/output/MSDetectorFileOutput.h>
 #include <microsim/MSMoveReminder.h>
+#include <microsim/MSRoute.h>
 #include <utils/distribution/RandomDistributor.h>
 
 
@@ -32,7 +33,6 @@
 // class declarations
 // ===========================================================================
 class MSEdge;
-class MSRoute;
 class MSVehicle;
 class OutputDevice;
 
@@ -121,14 +121,14 @@ public:
     void writeXMLDetectorProlog(OutputDevice& dev) const;
     /// @}
 
-    const MSRoute* getRoute() const;
+    ConstMSRoutePtr getRoute() const;
 
 private:
     /// @brief The previous distribution of routes (probability->route)
-    std::pair<std::string, RandomDistributor<const MSRoute*>*> myLastRouteDistribution;
+    std::pair<std::string, RandomDistributor<ConstMSRoutePtr>*> myLastRouteDistribution;
 
     /// @brief The current distribution of routes (probability->route)
-    std::pair<std::string, RandomDistributor<const MSRoute*>*> myCurrentRouteDistribution;
+    std::pair<std::string, RandomDistributor<ConstMSRoutePtr>*> myCurrentRouteDistribution;
 
 
 private:

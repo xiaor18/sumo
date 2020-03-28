@@ -970,7 +970,7 @@ MSVehicle::Stop::write(OutputDevice& dev) const {
 /* -------------------------------------------------------------------------
  * MSVehicle-methods
  * ----------------------------------------------------------------------- */
-MSVehicle::MSVehicle(SUMOVehicleParameter* pars, const MSRoute* route,
+MSVehicle::MSVehicle(SUMOVehicleParameter* pars, ConstMSRoutePtr route,
                      MSVehicleType* type, const double speedFactor) :
     MSBaseVehicle(pars, route, type, speedFactor),
     myWaitingTime(0),
@@ -1074,7 +1074,7 @@ MSVehicle::hasArrived() const {
 
 
 bool
-MSVehicle::replaceRoute(const MSRoute* newRoute, const std::string& info, bool onInit, int offset, bool addRouteStops, bool removeStops) {
+MSVehicle::replaceRoute(ConstMSRoutePtr newRoute, const std::string& info, bool onInit, int offset, bool addRouteStops, bool removeStops) {
     const ConstMSEdgeVector& edges = newRoute->getEdges();
     // rebuild in-vehicle route information
     if (onInit) {
@@ -1091,9 +1091,6 @@ MSVehicle::replaceRoute(const MSRoute* newRoute, const std::string& info, bool o
         myCurrEdge = newCurrEdge;
     }
     const bool stopsFromScratch = onInit && myRoute->getStops().empty();
-    // check whether the old route may be deleted (is not used by anyone else)
-    newRoute->addReference();
-    myRoute->release();
     // assign new route
     myRoute = newRoute;
     // update arrival definition

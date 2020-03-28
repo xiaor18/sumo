@@ -93,7 +93,7 @@ MSBaseVehicle::getPreviousSpeed() const {
 }
 
 
-MSBaseVehicle::MSBaseVehicle(SUMOVehicleParameter* pars, const MSRoute* route,
+MSBaseVehicle::MSBaseVehicle(SUMOVehicleParameter* pars, ConstMSRoutePtr route,
                              MSVehicleType* type, const double speedFactor) :
     SUMOVehicle(pars->id),
     myParameter(pars),
@@ -131,19 +131,19 @@ MSBaseVehicle::MSBaseVehicle(SUMOVehicleParameter* pars, const MSRoute* route,
             }
         }
     }
-    myRoute->addReference();
 }
 
 
 MSBaseVehicle::~MSBaseVehicle() {
     delete myEdgeWeights;
-    myRoute->release();
     if (myParameter->repetitionNumber == 0) {
         MSRoute::checkDist(myParameter->routeid);
     }
     for (MSVehicleDevice* dev : myDevices) {
         delete dev;
     }
+    const std::string routeid = myRoute->getID();
+    myRoute = nullptr;
     delete myParameter;
 }
 
@@ -352,11 +352,10 @@ MSBaseVehicle::replaceRouteEdges(ConstMSEdgeVector& edges, double cost, double s
         return true;
     }
     const RGBColor& c = myRoute->getColor();
-    MSRoute* newRoute = new MSRoute(id, edges, false, &c == &RGBColor::DEFAULT_COLOR ? nullptr : new RGBColor(c), std::vector<SUMOVehicleParameter::Stop>());
+    std::shared_ptr<MSRoute> newRoute = std::make_shared<MSRoute>(id, edges, false, &c == &RGBColor::DEFAULT_COLOR ? nullptr : new RGBColor(c), std::vector<SUMOVehicleParameter::Stop>());
     newRoute->setCosts(cost);
     newRoute->setSavings(savings);
     if (!MSRoute::dictionary(id, newRoute)) {
-        delete newRoute;
         return false;
     }
 
@@ -364,14 +363,10 @@ MSBaseVehicle::replaceRouteEdges(ConstMSEdgeVector& edges, double cost, double s
     if (check && !hasValidRoute(msg, newRoute)) {
         WRITE_WARNING("Invalid route replacement for vehicle '" + getID() + "'. " + msg);
         if (MSGlobals::gCheckRoutes) {
-            newRoute->addReference();
-            newRoute->release();
             return false;
         }
     }
     if (!replaceRoute(newRoute, info, onInit, (int)edges.size() - oldSize, false, removeStops)) {
-        newRoute->addReference();
-        newRoute->release();
         return false;
     }
     return true;
@@ -467,7 +462,7 @@ MSBaseVehicle::addTransportable(MSTransportable* transportable) {
 
 
 bool
-MSBaseVehicle::hasValidRoute(std::string& msg, const MSRoute* route) const {
+MSBaseVehicle::hasValidRoute(std::string& msg, ConstMSRoutePtr route) const {
     MSRouteIterator start = myCurrEdge;
     if (route == nullptr) {
         route = myRoute;

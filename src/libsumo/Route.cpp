@@ -51,7 +51,7 @@ Route::getIDList() {
 
 std::vector<std::string>
 Route::getEdges(const std::string& routeID) {
-    const MSRoute* r = getRoute(routeID);
+    ConstMSRoutePtr r = getRoute(routeID);
     std::vector<std::string> ids;
     for (ConstMSEdgeVector::const_iterator i = r->getEdges().begin(); i != r->getEdges().end(); ++i) {
         ids.push_back((*i)->getID());
@@ -68,13 +68,13 @@ Route::getIDCount() {
 
 std::string
 Route::getParameter(const std::string& routeID, const std::string& param) {
-    const MSRoute* r = getRoute(routeID);
+    ConstMSRoutePtr r = getRoute(routeID);
     return r->getParameter(param, "");
 }
 
 void
 Route::setParameter(const std::string& routeID, const std::string& key, const std::string& value) {
-    MSRoute* r = const_cast<MSRoute*>(getRoute(routeID));
+    MSRoute* r = const_cast<MSRoute*>(getRoute(routeID).get());
     r->setParameter(key, value);
 }
 
@@ -93,7 +93,7 @@ Route::add(const std::string& routeID, const std::vector<std::string>& edgeIDs) 
         edges.push_back(edge);
     }
     const std::vector<SUMOVehicleParameter::Stop> stops;
-    if (!MSRoute::dictionary(routeID, new MSRoute(routeID, edges, true, nullptr, stops))) {
+    if (!MSRoute::dictionary(routeID, std::make_shared<MSRoute>(routeID, edges, true, nullptr, stops))) {
         throw TraCIException("Could not add route.");
     }
 }
@@ -102,9 +102,9 @@ Route::add(const std::string& routeID, const std::vector<std::string>& edgeIDs) 
 LIBSUMO_SUBSCRIPTION_IMPLEMENTATION(Route, ROUTE)
 
 
-const MSRoute*
+ConstMSRoutePtr
 Route::getRoute(const std::string& id) {
-    const MSRoute* r = MSRoute::dictionary(id);
+    ConstMSRoutePtr r = MSRoute::dictionary(id);
     if (r == nullptr) {
         throw TraCIException("Route '" + id + "' is not known");
     }

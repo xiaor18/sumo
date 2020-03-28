@@ -182,15 +182,15 @@ inline std::string toString<Distribution_Parameterized>(const Distribution_Param
 }
 
 template <typename V>
-inline std::string toString(const std::vector<V*>& v, std::streamsize accuracy = gPrecision) {
+inline std::string toString(const std::vector<V>& v, std::streamsize accuracy = gPrecision) {
     return toString<V>(v.begin(), v.end(), accuracy);
 }
 
 template <typename V>
-inline std::string toString(const typename std::vector<V*>::const_iterator& b, const typename std::vector<V*>::const_iterator& e, std::streamsize accuracy = gPrecision) {
+inline std::string toString(const typename std::vector<V>::const_iterator& b, const typename std::vector<V>::const_iterator& e, std::streamsize accuracy = gPrecision) {
     UNUSED_PARAMETER(accuracy);
     std::ostringstream oss;
-    for (typename std::vector<V*>::const_iterator it = b; it != e; ++it) {
+    for (typename std::vector<V>::const_iterator it = b; it != e; ++it) {
         if (it != b) {
             oss << " ";
         }

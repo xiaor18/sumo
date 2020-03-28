@@ -729,7 +729,7 @@ GUIBaseVehicle::drawRoute(const GUIVisualizationSettings& s, int routeNo, double
         drawRouteHelper(s, myVehicle.getRoute(), future, darker);
         return;
     }
-    const MSRoute* route = myRoutes->getRoute(routeNo - 1); // only prior routes are stored
+    ConstMSRoutePtr route = myRoutes->getRoute(routeNo - 1); // only prior routes are stored
     if (route != nullptr) {
         drawRouteHelper(s, *route, future, darker);
     }

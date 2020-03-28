@@ -23,6 +23,7 @@
 #include <config.h>
 
 #include <vector>
+#include <memory>
 #include <fx.h>
 #include <microsim/MSVehicleControl.h>
 #include <utils/gui/globjects/GUIGlObject.h>
@@ -67,7 +68,7 @@ public:
      * @see MSVehicleControl::buildVehicle
      */
     SUMOVehicle* buildVehicle(SUMOVehicleParameter* defs,
-                              const MSRoute* route, MSVehicleType* type,
+                              std::shared_ptr<const MSRoute> route, MSVehicleType* type,
                               const bool ignoreStopErrors, const bool fromRouteFile = true);
     /// @}
 

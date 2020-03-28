@@ -24,6 +24,7 @@
 
 #include <vector>
 #include <typeinfo>
+#include <memory>
 #include <utils/common/SUMOTime.h>
 #include <utils/common/Named.h>
 #include <utils/router/SUMOAbstractRouter.h>
@@ -82,8 +83,11 @@ public:
     virtual MSLane* getLane() const = 0;
 
 
-    /// Returns the current route
+    /// Returns a reference to the current route
     virtual const MSRoute& getRoute() const = 0;
+
+    /// Returns a shared pointer to the current route
+    virtual std::shared_ptr<const MSRoute> getSharedRoute() const = 0;
 
     /** @brief Returns the nSuccs'th successor of edge the vehicle is currently at
      *
@@ -109,7 +113,7 @@ public:
     virtual bool replaceRouteEdges(ConstMSEdgeVector& edges, double cost, double savings, const std::string& info, bool onInit = false, bool check = false, bool removeStops = true) = 0;
 
     /// Replaces the current route by the given one
-    virtual bool replaceRoute(const MSRoute* route, const std::string& info, bool onInit = false, int offset = 0, bool addStops = true, bool removeStops = true) = 0;
+    virtual bool replaceRoute(std::shared_ptr<const MSRoute> route, const std::string& info, bool onInit = false, int offset = 0, bool addStops = true, bool removeStops = true) = 0;
 
     /** @brief Performs a rerouting using the given router
      *
@@ -127,7 +131,7 @@ public:
      * @param[in] route The route to check (or 0 if the current route shall be checked)
      * @return Whether the vehicle's current route is valid
      */
-    virtual bool hasValidRoute(std::string& msg, const MSRoute* route = 0) const = 0;
+    virtual bool hasValidRoute(std::string& msg, std::shared_ptr<const MSRoute> route = nullptr) const = 0;
 
 
     /** @brief Returns an iterator pointing to the current edge in this vehicles route

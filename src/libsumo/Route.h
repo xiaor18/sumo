@@ -23,6 +23,7 @@
 #include <config.h>
 
 #include <vector>
+#include <memory>
 #include <libsumo/TraCIDefs.h>
 
 
@@ -61,7 +62,7 @@ public:
     static bool handleVariable(const std::string& objID, const int variable, VariableWrapper* wrapper);
 
 private:
-    static const MSRoute* getRoute(const std::string& id);
+    static std::shared_ptr<const MSRoute> getRoute(const std::string& id);
 
 private:
     static SubscriptionResults mySubscriptionResults;

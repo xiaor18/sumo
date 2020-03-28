@@ -1077,7 +1077,7 @@ Vehicle::add(const std::string& vehicleID,
     if (!vehicleType) {
         throw TraCIException("Invalid type '" + typeID + "' for vehicle '" + vehicleID + "'.");
     }
-    const MSRoute* route = MSRoute::dictionary(routeID);
+    ConstMSRoutePtr route = MSRoute::dictionary(routeID);
     if (!route) {
         if (routeID == "") {
             // assume, route was intentionally left blank because the caller
@@ -1376,7 +1376,7 @@ Vehicle::setType(const std::string& vehicleID, const std::string& typeID) {
 void
 Vehicle::setRouteID(const std::string& vehicleID, const std::string& routeID) {
     MSBaseVehicle* veh = Helper::getVehicle(vehicleID);
-    const MSRoute* r = MSRoute::dictionary(routeID);
+    ConstMSRoutePtr r = MSRoute::dictionary(routeID);
     if (r == nullptr) {
         throw TraCIException("The route '" + routeID + "' is not known.");
     }

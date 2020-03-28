@@ -124,7 +124,7 @@ public:
      * @param[in] index The index of the route to retrieve
      * @return the route at the index
      */
-    const MSRoute* getRoute(int index) const;
+    ConstMSRoutePtr getRoute(int index) const;
 
 
     /** @brief Saves the state of the device
@@ -248,7 +248,7 @@ private:
          * @param[in] time_ The time the route was replaced
          * @param[in] route_ The prior route
          */
-        RouteReplaceInfo(const MSEdge* const edge_, const SUMOTime time_, const MSRoute* const route_, const std::string& info_)
+        RouteReplaceInfo(const MSEdge* const edge_, const SUMOTime time_, ConstMSRoutePtr const route_, const std::string& info_)
             : edge(edge_), time(time_), route(route_), info(info_) {}
 
         /// @brief Destructor
@@ -261,7 +261,7 @@ private:
         SUMOTime time;
 
         /// @brief The prior route
-        const MSRoute* route;
+        ConstMSRoutePtr route;
 
         /// @brief Information regarding rerouting
         std::string info;
@@ -269,7 +269,7 @@ private:
     };
 
     /// @brief The currently used route
-    const MSRoute* myCurrentRoute;
+    ConstMSRoutePtr myCurrentRoute;
 
     /// @brief Prior routes
     std::vector<RouteReplaceInfo> myReplacedRoutes;

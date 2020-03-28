@@ -27,6 +27,7 @@
 #include <vector>
 #include <utils/common/Command.h>
 #include <microsim/MSMoveReminder.h>
+#include <microsim/MSRoute.h>
 #include "MSTrigger.h"
 #include <utils/xml/SUMOSAXHandler.h>
 #include <utils/distribution/RandomDistributor.h>
@@ -37,7 +38,6 @@
 // ===========================================================================
 class MSNet;
 class MSLane;
-class MSRoute;
 class SUMOVehicle;
 class MSParkingArea;
 
@@ -102,7 +102,7 @@ public:
         /// The distributions of new destinations to use
         RandomDistributor<MSEdge*> edgeProbs;
         /// The distributions of new routes to use
-        RandomDistributor<const MSRoute*> routeProbs;
+        RandomDistributor<ConstMSRoutePtr> routeProbs;
         /// The permissions to use
         SVCPermissions permissions;
         /// The distributions of new parking areas to use as destinations
@@ -242,7 +242,7 @@ protected:
     /// new destinations with probabilities
     RandomDistributor<MSEdge*> myCurrentEdgeProb;
     /// new routes with probabilities
-    RandomDistributor<const MSRoute*> myCurrentRouteProb;
+    RandomDistributor<ConstMSRoutePtr> myCurrentRouteProb;
     //@}
 
 

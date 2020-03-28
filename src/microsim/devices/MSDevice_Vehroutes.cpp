@@ -114,7 +114,7 @@ MSDevice_Vehroutes::StateListener::vehicleStateChanged(const SUMOVehicle* const 
 // ---------------------------------------------------------------------------
 MSDevice_Vehroutes::MSDevice_Vehroutes(SUMOVehicle& holder, const std::string& id, int maxRoutes) :
     MSVehicleDevice(holder, id),
-    myCurrentRoute(&holder.getRoute()),
+    myCurrentRoute(holder.getSharedRoute()),
     myMaxRoutes(maxRoutes),
     myLastSavedAt(nullptr),
     myDepartLane(-1),
@@ -122,15 +122,10 @@ MSDevice_Vehroutes::MSDevice_Vehroutes(SUMOVehicle& holder, const std::string& i
     myDepartSpeed(-1),
     myDepartPosLat(0),
     myStopOut(2) {
-    myCurrentRoute->addReference();
 }
 
 
 MSDevice_Vehroutes::~MSDevice_Vehroutes() {
-    for (std::vector<RouteReplaceInfo>::iterator i = myReplacedRoutes.begin(); i != myReplacedRoutes.end(); ++i) {
-        (*i).route->release();
-    }
-    myCurrentRoute->release();
     myStateListener.myDevices.erase(&myHolder);
 }
 
@@ -310,9 +305,9 @@ MSDevice_Vehroutes::writeOutput(const bool hasArrived) const {
         }
     }
     if (myDUAStyle) {
-        const RandomDistributor<const MSRoute*>* const routeDist = MSRoute::distDictionary("!" + myHolder.getID());
+        const RandomDistributor<ConstMSRoutePtr>* const routeDist = MSRoute::distDictionary("!" + myHolder.getID());
         if (routeDist != nullptr) {
-            const std::vector<const MSRoute*>& routes = routeDist->getVals();
+            const std::vector<ConstMSRoutePtr>& routes = routeDist->getVals();
             unsigned index = 0;
             while (index < routes.size() && routes[index] != myCurrentRoute) {
                 ++index;
@@ -373,7 +368,7 @@ MSDevice_Vehroutes::writeOutput(const bool hasArrived) const {
 }
 
 
-const MSRoute*
+ConstMSRoutePtr
 MSDevice_Vehroutes::getRoute(int index) const {
     if (index < (int)myReplacedRoutes.size()) {
         return myReplacedRoutes[index].route;
@@ -392,14 +387,10 @@ MSDevice_Vehroutes::addRoute(const std::string& info) {
             myReplacedRoutes.push_back(RouteReplaceInfo(nullptr, MSNet::getInstance()->getCurrentTimeStep(), myCurrentRoute, info));
         }
         if ((int)myReplacedRoutes.size() > myMaxRoutes) {
-            myReplacedRoutes.front().route->release();
             myReplacedRoutes.erase(myReplacedRoutes.begin());
         }
-    } else {
-        myCurrentRoute->release();
     }
-    myCurrentRoute = &myHolder.getRoute();
-    myCurrentRoute->addReference();
+    myCurrentRoute = myHolder.getSharedRoute();
 }
 
 
@@ -465,8 +456,7 @@ MSDevice_Vehroutes::loadState(const SUMOSAXAttributes& attrs) {
         bis >> time;
         bis >> routeID;
         bis >> info;
-        const MSRoute* route = MSRoute::dictionary(routeID);
-        route->addReference();
+        ConstMSRoutePtr route = MSRoute::dictionary(routeID);
         myReplacedRoutes.push_back(RouteReplaceInfo(MSEdge::dictionary(edgeID), time, route, info));
     }
 }

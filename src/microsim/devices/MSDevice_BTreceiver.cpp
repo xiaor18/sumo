@@ -272,10 +272,10 @@ MSDevice_BTreceiver::BTreceiverUpdate::leaveRange(VehicleInformation& receiverIn
     i->second->meetingEnd = new MeetingPoint(STEPS2TIME(MSNet::getInstance()->getCurrentTimeStep()) + tOffset, receiverState, senderState);
     ConstMSEdgeVector::const_iterator begin = receiverInfo.route.begin() + i->second->meetingBegin.observerState.routePos;
     ConstMSEdgeVector::const_iterator end = receiverInfo.route.begin() + receiverState.routePos + 1;
-    i->second->receiverRoute = toString<const MSEdge>(begin, end);
+    i->second->receiverRoute = toString<const MSEdge*>(begin, end);
     begin = senderInfo.route.begin() + i->second->meetingBegin.seenState.routePos;
     end = senderInfo.route.begin() + senderState.routePos + 1;
-    i->second->senderRoute = toString<const MSEdge>(begin, end);
+    i->second->senderRoute = toString<const MSEdge*>(begin, end);
     receiverInfo.seen[senderInfo.getID()].push_back(i->second);
     receiverInfo.currentlySeen.erase(i);
 }

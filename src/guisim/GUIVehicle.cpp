@@ -77,7 +77,7 @@
 #pragma warning(push)
 #pragma warning(disable: 4355)
 #endif
-GUIVehicle::GUIVehicle(SUMOVehicleParameter* pars, const MSRoute* route,
+GUIVehicle::GUIVehicle(SUMOVehicleParameter* pars, ConstMSRoutePtr route,
                        MSVehicleType* type, const double speedFactor) :
     MSVehicle(pars, route, type, speedFactor),
     GUIBaseVehicle((MSBaseVehicle&) * this) {
@@ -616,7 +616,7 @@ GUIVehicle::drawRouteHelper(const GUIVisualizationSettings& s, const MSRoute& r,
     MSRouteIterator i = future ? myCurrEdge : r.begin();
     const std::vector<MSLane*>& bestLaneConts = getBestLanesContinuation();
     // draw continuation lanes when drawing the current route where available
-    int bestLaneIndex = (&r == myRoute ? 0 : (int)bestLaneConts.size());
+    int bestLaneIndex = (&r == myRoute.get() ? 0 : (int)bestLaneConts.size());
     std::map<const MSLane*, int> repeatLane; // count repeated occurrences of the same edge
     const double textSize = s.vehicleName.size / s.scale;
     const GUILane* prevLane = nullptr;

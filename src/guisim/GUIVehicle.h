@@ -57,7 +57,7 @@ public:
      * @param[in] speedFactor The factor for driven lane's speed limits
      * @exception ProcessError If a value is wrong
      */
-    GUIVehicle(SUMOVehicleParameter* pars, const MSRoute* route,
+    GUIVehicle(SUMOVehicleParameter* pars, ConstMSRoutePtr route,
                MSVehicleType* type, const double speedFactor);
 
 

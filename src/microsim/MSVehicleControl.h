@@ -96,7 +96,7 @@ public:
      * @param[in] fromRouteFile whether we are just reading the route file or creating via trigger, traci, ...
      * @return The built vehicle (MSVehicle instance)
      */
-    virtual SUMOVehicle* buildVehicle(SUMOVehicleParameter* defs, const MSRoute* route,
+    virtual SUMOVehicle* buildVehicle(SUMOVehicleParameter* defs, std::shared_ptr<const MSRoute> route,
                                       MSVehicleType* type,
                                       const bool ignoreStopErrors, const bool fromRouteFile = true);
     /// @}

@@ -108,7 +108,7 @@ MSVehicleControl::~MSVehicleControl() {
 
 SUMOVehicle*
 MSVehicleControl::buildVehicle(SUMOVehicleParameter* defs,
-                               const MSRoute* route, MSVehicleType* type,
+                               ConstMSRoutePtr route, MSVehicleType* type,
                                const bool ignoreStopErrors, const bool fromRouteFile) {
     MSVehicle* built = new MSVehicle(defs, route, type, type->computeChosenSpeedDeviation(fromRouteFile ? MSRouteHandler::getParsingRNG() : nullptr));
     initVehicle(built, ignoreStopErrors);
@@ -496,7 +496,7 @@ void
 MSVehicleControl::adaptIntermodalRouter(MSNet::MSIntermodalRouter& router) const {
     for (const SUMOVehicle* const veh : myPTVehicles) {
         // add single vehicles with line attribute which are not part of a flow
-        const MSRoute* const route = MSRoute::dictionary(veh->getParameter().routeid);
+        ConstMSRoutePtr const route = MSRoute::dictionary(veh->getParameter().routeid);
         router.getNetwork()->addSchedule(veh->getParameter(), route == nullptr ? nullptr : &route->getStops());
     }
 }

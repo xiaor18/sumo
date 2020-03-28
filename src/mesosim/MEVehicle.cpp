@@ -45,7 +45,7 @@
 // ===========================================================================
 // method definitions
 // ===========================================================================
-MEVehicle::MEVehicle(SUMOVehicleParameter* pars, const MSRoute* route,
+MEVehicle::MEVehicle(SUMOVehicleParameter* pars, ConstMSRoutePtr route,
                      MSVehicleType* type, const double speedFactor) :
     MSBaseVehicle(pars, route, type, speedFactor),
     mySegment(nullptr),
@@ -178,7 +178,7 @@ MEVehicle::isParking() const {
 
 
 bool
-MEVehicle::replaceRoute(const MSRoute* newRoute, const std::string& info,  bool onInit, int offset, bool addStops, bool removeStops) {
+MEVehicle::replaceRoute(ConstMSRoutePtr newRoute, const std::string& info,  bool onInit, int offset, bool addStops, bool removeStops) {
     UNUSED_PARAMETER(addStops); // @todo recheck!
     UNUSED_PARAMETER(removeStops); // @todo recheck!
     const ConstMSEdgeVector& edges = newRoute->getEdges();
@@ -197,9 +197,6 @@ MEVehicle::replaceRoute(const MSRoute* newRoute, const std::string& info,  bool 
     } else {
         myCurrEdge = std::find(edges.begin() + offset, edges.end(), *myCurrEdge);
     }
-    // check whether the old route may be deleted (is not used by anyone else)
-    newRoute->addReference();
-    myRoute->release();
     // assign new route
     myRoute = newRoute;
     if (mySegment != nullptr) {
